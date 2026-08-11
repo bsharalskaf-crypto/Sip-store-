@@ -41,7 +41,6 @@
         .cat-btn:active { transform: scale(0.93); }
         
         .menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; padding: 30px; }
-        /* تم إلغاء الأنيميشن (opacity و animation) نهائياً لمنع الرفرفة */
         .menu-item { background: linear-gradient(145deg, var(--primary-brown), #321e1a); border-radius: 15px; overflow: hidden; box-shadow: 0 8px 20px rgba(0,0,0,0.5); border: 1px solid #4e302a; transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease; }
         .menu-item:hover { transform: translateY(-5px); border-color: var(--gold); box-shadow: 0 12px 25px rgba(0,0,0,0.6), 0 0 15px rgba(212, 175, 55, 0.1); }
         .img-container { width: 100%; aspect-ratio: 4 / 3; background-color: #2a1a15; overflow: hidden; position: relative; }
@@ -190,7 +189,7 @@
         // ==========================================
         // 1. ضع بيانات Firebase هنا
         // ==========================================
-      const firebaseConfig = {
+        const firebaseConfig = {
   apiKey: "AIzaSyDd8F5oDoDVtondKCZZvLaZ3G06mCksTXw",
   authDomain: "sip-store-dcd00.firebaseapp.com",
   databaseURL: "https://sip-store-dcd00-default-rtdb.europe-west1.firebasedatabase.app",
@@ -199,6 +198,7 @@
   messagingSenderId: "414792173996",
   appId: "1:414792173996:web:160d547d13cd7a19985209"
 };
+
         
         const IMGBB_API_KEY = "ff8ab5606d36fe74528c851a64e38251"; 
         
@@ -210,7 +210,7 @@
         let currentCategory = null;
         const ADMIN_PASSWORD = "ssiipp2025"; 
         let lastDataString = ""; 
-        const DB_REF = 'sipMenuV2'; 
+        const DB_REF = 'sipMenuV3'; // تم تغيير الاسم لجدول جديد تماماً لتفادي بيانات الحلقة المفرغة القديمة
 
         let clickCount = 0, clickTimer = null;
         function handleLogoClick() {
@@ -283,81 +283,91 @@
             });
         });
 
+        // ==========================================
+        // الحل الجذري: فصل التعبئة الأولية عن الاستماع المستمر
+        // ==========================================
+        
+        // 1. دالة لتعبئة البيانات الافتراضية لمرة واحدة فقط
+        function initializeDefaultMenu() {
+            let initData = { categories: [], items: [] };
+            initData.categories = [
+                { id: 1, name: "بارد" }, { id: 2, name: "ساخن" }, { id: 3, name: "ميلك شيك" },
+                { id: 4, name: "عصائر فريش" }, { id: 5, name: "كوكتيلات" }, { id: 6, name: "حلويات وتيسو" }
+            ];
+            let itemId = 1;
+            const img = (url) => `https://images.unsplash.com/${url}?auto=compress&cs=tinysrgb&w=400`;
+            const add = (name, price, extras, catId, imgUrl) => initData.items.push({ id: itemId++, name, price, extras, categoryId: catId, image: imgUrl });
+
+            add("سڤن مع نكهة", "125 ل.س", "بطيخ، فريز، هاواي", 1, img("photo-1437418747212-8d9709afab22"));
+            add("موهيتو", "150 ل.س", "فريز، بطيخ، هاواي", 1, img("photo-1551538827-9c037cb4f32a"));
+            add("ايس كوفي", "150 ل.س", "", 1, img("photo-1461023058943-07fcbe16d735"));
+            add("ايس كراميل", "150 ل.س", "", 1, img("photo-1517701550927-30cf4ba1dba5"));
+            add("ايس شوكولا", "150 ل.س", "", 1, img("photo-1494314671902-399b18174975"));
+            add("ايس موكا", "150 ل.س", "", 1, img("photo-1461023058943-07fcbe16d735"));
+            add("ايس تي مانغو", "140 ل.س", "", 1, img("photo-1621263764928-df1444c5e859"));
+            add("ايس تي مانغو مع سڤن اب", "160 ل.س", "", 1, img("photo-1621263764928-df1444c5e859"));
+            add("اسبانش لاتيه", "150 ل.س", "", 1, img("photo-1517701550927-30cf4ba1dba5"));
+            add("ايس امريكانو", "150 ل.س", "", 1, img("photo-1461023058943-07fcbe16d735"));
+            add("ايس لاتيه", "150 ل.س", "", 1, img("photo-1517701550927-30cf4ba1dba5"));
+            add("فانيل فرابوتشنو", "200 ل.س", "", 1, img("photo-1461023058943-07fcbe16d735"));
+            add("كراميل فرابوتشينو", "200 ل.س", "", 1, img("photo-1517701550927-30cf4ba1dba5"));
+            add("SIP ايس اسسبريسو", "150 ل.س", "", 1, img("photo-1461023058943-07fcbe16d735"));
+
+            add("نسكافيه", "50 ل.س", "دبل 30 ل.س", 2, img("photo-1561882468-9110e03e0f78"));
+            add("كابوتشينو", "60 ل.س", "بندق، اوريجينال، كاراميل، شوكولا", 2, img("photo-1572442388796-11668a67e53d"));
+            add("هوت شوكلت", "60 ل.س", "", 2, img("photo-1542990253-0d0f5be5f0ed"));
+            add("ميلو", "60 ل.س", "", 2, img("photo-1542990253-0d0f5be5f0ed"));
+            add("اسبريسو", "60 ل.س", "الدبل 80 ل.س", 2, img("photo-1510707577719-ae7c14805e3a"));
+            add("قهوة", "60 ل.س", "", 2, img("photo-1495475288435-f89302524624"));
+            add("اندومي", "60 ل.س", "", 2, img("photo-1569718212165-3a8278d5f624"));
+            add("شاي", "50 ل.س", "", 2, img("photo-1563911892437-1feda0179e1b"));
+            add("كمون وليمون", "50 ل.س", "", 2, img("photo-1597481499750-3e6b22637e12"));
+            add("زهورات", "50 ل.س", "", 2, img("photo-1564890369478-c89ca6d9cde9"));
+            add("زنجبيل وليمون", "50 ل.س", "", 2, img("photo-1597481499750-3e6b22637e12"));
+            add("هوت كراميل", "125 ل.س", "", 2, img("photo-1561882468-9110e03e0f78"));
+
+            add("شوكولا", "150 ل.س", "", 3, img("photo-1572490122747-3968b75cc699"));
+            add("فريز طبيعي", "180 ل.س", "", 3, img("photo-1505252585461-04db1eb84625"));
+            add("فريز باودر", "175 ل.س", "", 3, img("photo-1505252585461-04db1eb84625"));
+            add("لوتس", "180 ل.س", "", 3, img("photo-1572490122747-3968b75cc699"));
+            add("اوريو", "150 ل.س", "", 3, img("photo-1572490122747-3968b75cc699"));
+            add("كراميل", "180 ل.س", "", 3, img("photo-1572490122747-3968b75cc699"));
+            add("فانيل", "180 ل.س", "", 3, img("photo-1572490122747-3968b75cc699"));
+
+            add("فريز", "150 ل.س", "", 4, img("photo-1505252585461-04db1eb84625"));
+            add("مانغو", "200 ل.س", "", 4, img("photo-1604495772376-9657f0035eb5"));
+
+            add("موز وحليب", "150 ل.س", "", 5, img("photo-1604495772376-9657f0035eb5"));
+            add("موز وحليب وفريز", "180 ل.س", "", 5, img("photo-1604495772376-9657f0035eb5"));
+            add("موز وحليب وشوكولا", "150 ل.س", "", 5, img("photo-1604495772376-9657f0035eb5"));
+            add("بطيخ اصفر وحليب", "150 ل.س", "", 5, img("photo-1604495772376-9657f0035eb5"));
+            add("فريز وموز وشوكولا", "180 ل.س", "", 5, img("photo-1604495772376-9657f0035eb5"));
+
+            add("غوفر شوكولا", "200 ل.س", "", 6, img("photo-1568051243851-f9b136146e97"));
+            add("غوفر لوتس", "250 ل.س", "", 6, img("photo-1568051243851-f9b136146e97"));
+            add("وافل شوكولا", "200 ل.س", "", 6, img("photo-1568051243851-f9b136146e97"));
+            add("وافل لوتس", "250 ل.س", "", 6, img("photo-1568051243851-f9b136146e97"));
+            add("فتوتشيني غريب", "200 ل.س", "", 6, img("photo-1519676867240-f03562e64548"));
+
+            db.ref(DB_REF).set(initData);
+        }
+
+        // 2. دالة الاستماع (تقرأ فقط، ولا تحفظ أبداً)
         db.ref(DB_REF).on('value', (snapshot) => {
             const dbData = snapshot.val();
-            let newData = { categories: [], items: [] };
             
-            if (dbData) {
-                newData.categories = Array.isArray(dbData.categories) ? dbData.categories : (dbData.categories ? Object.values(dbData.categories) : []);
-                newData.items = Array.isArray(dbData.items) ? dbData.items : (dbData.items ? Object.values(dbData.items) : []);
+            // إذا كانت القاعدة فارغة، قم بتعبئتها مرة واحدة ثم انتهِ
+            if (!dbData || !dbData.categories || !dbData.items) {
+                initializeDefaultMenu();
+                return; 
             }
             
-            // إذا كانت القاعدة فارغة (أول مرة)، قم بتعبئتها والخروج فوراً بدون رسم لمنع الرفرفة
-            if (newData.categories.length === 0 || newData.items.length === 0) {
-                newData.categories = [
-                    { id: 1, name: "بارد" }, { id: 2, name: "ساخن" }, { id: 3, name: "ميلك شيك" },
-                    { id: 4, name: "عصائر فريش" }, { id: 5, name: "كوكتيلات" }, { id: 6, name: "حلويات وتيسو" }
-                ];
-                let itemId = 1;
-                const img = (url) => `https://images.unsplash.com/${url}?auto=compress&cs=tinysrgb&w=400`;
-                const add = (name, price, extras, catId, imgUrl) => newData.items.push({ id: itemId++, name, price, extras, categoryId: catId, image: imgUrl });
+            // إذا كانت مليئة، قم بتحديث الواجهة
+            let newData = {
+                categories: dbData.categories ? Object.values(dbData.categories) : [],
+                items: dbData.items ? Object.values(dbData.items).filter(item => item !== null) : []
+            };
 
-                add("سڤن مع نكهة", "125 ل.س", "بطيخ، فريز، هاواي", 1, img("photo-1437418747212-8d9709afab22"));
-                add("موهيتو", "150 ل.س", "فريز، بطيخ، هاواي", 1, img("photo-1551538827-9c037cb4f32a"));
-                add("ايس كوفي", "150 ل.س", "", 1, img("photo-1461023058943-07fcbe16d735"));
-                add("ايس كراميل", "150 ل.س", "", 1, img("photo-1517701550927-30cf4ba1dba5"));
-                add("ايس شوكولا", "150 ل.س", "", 1, img("photo-1494314671902-399b18174975"));
-                add("ايس موكا", "150 ل.س", "", 1, img("photo-1461023058943-07fcbe16d735"));
-                add("ايس تي مانغو", "140 ل.س", "", 1, img("photo-1621263764928-df1444c5e859"));
-                add("ايس تي مانغو مع سڤن اب", "160 ل.س", "", 1, img("photo-1621263764928-df1444c5e859"));
-                add("اسبانش لاتيه", "150 ل.س", "", 1, img("photo-1517701550927-30cf4ba1dba5"));
-                add("ايس امريكانو", "150 ل.س", "", 1, img("photo-1461023058943-07fcbe16d735"));
-                add("ايس لاتيه", "150 ل.س", "", 1, img("photo-1517701550927-30cf4ba1dba5"));
-                add("فانيل فرابوتشنو", "200 ل.س", "", 1, img("photo-1461023058943-07fcbe16d735"));
-                add("كراميل فرابوتشينو", "200 ل.س", "", 1, img("photo-1517701550927-30cf4ba1dba5"));
-                add("SIP ايس اسسبريسو", "150 ل.س", "", 1, img("photo-1461023058943-07fcbe16d735"));
-
-                add("نسكافيه", "50 ل.س", "دبل 30 ل.س", 2, img("photo-1561882468-9110e03e0f78"));
-                add("كابوتشينو", "60 ل.س", "بندق، اوريجينال، كاراميل، شوكولا", 2, img("photo-1572442388796-11668a67e53d"));
-                add("هوت شوكلت", "60 ل.س", "", 2, img("photo-1542990253-0d0f5be5f0ed"));
-                add("ميلو", "60 ل.س", "", 2, img("photo-1542990253-0d0f5be5f0ed"));
-                add("اسبريسو", "60 ل.س", "الدبل 80 ل.س", 2, img("photo-1510707577719-ae7c14805e3a"));
-                add("قهوة", "60 ل.س", "", 2, img("photo-1495475288435-f89302524624"));
-                add("اندومي", "60 ل.س", "", 2, img("photo-1569718212165-3a8278d5f624"));
-                add("شاي", "50 ل.س", "", 2, img("photo-1563911892437-1feda0179e1b"));
-                add("كمون وليمون", "50 ل.س", "", 2, img("photo-1597481499750-3e6b22637e12"));
-                add("زهورات", "50 ل.س", "", 2, img("photo-1564890369478-c89ca6d9cde9"));
-                add("زنجبيل وليمون", "50 ل.س", "", 2, img("photo-1597481499750-3e6b22637e12"));
-                add("هوت كراميل", "125 ل.س", "", 2, img("photo-1561882468-9110e03e0f78"));
-
-                add("شوكولا", "150 ل.س", "", 3, img("photo-1572490122747-3968b75cc699"));
-                add("فريز طبيعي", "180 ل.س", "", 3, img("photo-1505252585461-04db1eb84625"));
-                add("فريز باودر", "175 ل.س", "", 3, img("photo-1505252585461-04db1eb84625"));
-                add("لوتس", "180 ل.س", "", 3, img("photo-1572490122747-3968b75cc699"));
-                add("اوريو", "150 ل.س", "", 3, img("photo-1572490122747-3968b75cc699"));
-                add("كراميل", "180 ل.س", "", 3, img("photo-1572490122747-3968b75cc699"));
-                add("فانيل", "180 ل.س", "", 3, img("photo-1572490122747-3968b75cc699"));
-
-                add("فريز", "150 ل.س", "", 4, img("photo-1505252585461-04db1eb84625"));
-                add("مانغو", "200 ل.س", "", 4, img("photo-1604495772376-9657f0035eb5"));
-
-                add("موز وحليب", "150 ل.س", "", 5, img("photo-1604495772376-9657f0035eb5"));
-                add("موز وحليب وفريز", "180 ل.س", "", 5, img("photo-1604495772376-9657f0035eb5"));
-                add("موز وحليب وشوكولا", "150 ل.س", "", 5, img("photo-1604495772376-9657f0035eb5"));
-                add("بطيخ اصفر وحليب", "150 ل.س", "", 5, img("photo-1604495772376-9657f0035eb5"));
-                add("فريز وموز وشوكولا", "180 ل.س", "", 5, img("photo-1604495772376-9657f0035eb5"));
-
-                add("غوفر شوكولا", "200 ل.س", "", 6, img("photo-1568051243851-f9b136146e97"));
-                add("غوفر لوتس", "250 ل.س", "", 6, img("photo-1568051243851-f9b136146e97"));
-                add("وافل شوكولا", "200 ل.س", "", 6, img("photo-1568051243851-f9b136146e97"));
-                add("وافل لوتس", "250 ل.س", "", 6, img("photo-1568051243851-f9b136146e97"));
-                add("فتوتشيني غريب", "200 ل.س", "", 6, img("photo-1519676867240-f03562e64548"));
-
-                db.ref(DB_REF).set(newData);
-                return; // نخرج من الدالة فوراً لمنع الرسم المتكرر
-            }
-            
-            // الفلتر الذكي: لا تقم بإعادة الرسم إلا إذا تغيرت البيانات فعلاً
             const newDataString = JSON.stringify(newData);
             if (newDataString !== lastDataString) {
                 data = newData;
